@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class Response {
 	
+	private static final String NULL = "<null>";
+
 	// Main response singleton
 	private static Response instance;
 	
@@ -15,6 +17,7 @@ public class Response {
 	private static final char FLUSH = '\n';
 	private static final String TAB = "  ";
 	private static final char COMMA = ',';
+	private static final char QUOTE = '"';
 	
 	private static int intendCounter = 0;
 	
@@ -39,16 +42,26 @@ public class Response {
 	 */	
 	
 	public Response setTitle(String title) {
+		if (title == null)
+			title = NULL;
 		this.title = title;
 		return this;
 	}
 	
 	public Response addAttribute(String key, String value) {
+		if (key == null)
+			return this;
+		if (value == null)
+			value = NULL;
 		attr.put(key, value);
 		return this;
 	}
 	
 	public Response addResponse(String key, Response response) {
+		if (key == null)
+			return this;
+		if (response == null)
+			response = new Response().setTitle(NULL);
 		deepAttr.put(key, response);
 		return this;
 	}
@@ -58,14 +71,14 @@ public class Response {
 	public String toString() {
 		sb = new StringBuilder();
 		
-		sb.append(getIntend() +  OPENCURLB);
+		sb.append(OPENCURLB);
 		sb.append(FLUSH);
 		increaseIntend();
 		
 		if (title != null && !title.trim().isEmpty())
-			sb.append(getIntend() + "response:" + title + COMMA + FLUSH);
+			sb.append(getIntend() + QUOTE +"response" + QUOTE + ": " + QUOTE + title + QUOTE + COMMA + FLUSH);
 		
-		sb.append(getIntend() + "data: " + OPENCURLB + FLUSH);
+		sb.append(getIntend() + QUOTE + "data" + QUOTE + ": " + OPENCURLB + FLUSH);
 		increaseIntend();
 		appendAttr();
 		if (!attr.isEmpty() && !deepAttr.isEmpty()) {
@@ -96,15 +109,17 @@ public class Response {
 	private void appendDeepAttr() {
 		if (deepAttr.isEmpty())
 			return;
-		
+		sb.append(getIntend() +  OPENBRA + FLUSH);
 		for (Map.Entry<String,Response> e : deepAttr.entrySet()) {
-			sb.append(getIntend() +  OPENCURLB + FLUSH);
+			
 			increaseIntend();
-			sb.append(getIntend() +  e.getKey() + ": " + FLUSH + e.getValue().toString() + FLUSH);
+			sb.append(getIntend() + QUOTE +  e.getKey() + QUOTE + ": "  + e.getValue().toString() + COMMA + FLUSH);
 			decreaseIntend();
-			sb.append(getIntend() + CLOSECURLB + COMMA + FLUSH);
+			
 		}
-
+		sb.delete(sb.length()-2, sb.length());
+		sb.append(FLUSH);
+		sb.append(getIntend() + CLOSEBRA);
 	}
 
 	private void decreaseIntend() {
@@ -124,8 +139,9 @@ public class Response {
 		increaseIntend();
 		
 		for (Map.Entry<String,String> e : attr.entrySet())
-			sb.append(getIntend() +  e.getKey() + ": " + e.getValue() + COMMA + FLUSH);
-		
+			sb.append(getIntend() + QUOTE +  e.getKey() + QUOTE + ": " + QUOTE + e.getValue() + QUOTE + COMMA + FLUSH);
+		sb.delete(sb.length()-2, sb.length());
+		sb.append(FLUSH);
 		decreaseIntend();
 		sb.append(getIntend() +  CLOSEBRA);
 	}

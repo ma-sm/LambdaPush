@@ -8,19 +8,21 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
  * Hello world!
  *
  */
-public class App implements RequestHandler<Void, Response>
+public class App implements RequestHandler<Request, Response>
 {
 	
-
+	// main handler
 	@Override
-	public Response handleRequest(Void arg0, Context arg1) {
+	public Response handleRequest(Request arg0, Context arg1) {
+		
+		Response.getInststance()
+			.setTitle("Lambda")
+			.addAttribute("id", arg0.getId());
 		
 		
 		
 		
-		
-		
-		return null;
+		return Response.getInststance();
 	}
 	
 	
